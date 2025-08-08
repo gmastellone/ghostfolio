@@ -12,6 +12,7 @@ import { TokenStorageService } from '@ghostfolio/client/services/token-storage.s
 import { UserService } from '@ghostfolio/client/services/user/user.service';
 import { Filter, InfoItem, User } from '@ghostfolio/common/interfaces';
 import { hasPermission, permissions } from '@ghostfolio/common/permissions';
+import { internalRoutes, publicRoutes } from '@ghostfolio/common/routes/routes';
 import { DateRange } from '@ghostfolio/common/types';
 import { GfAssistantComponent } from '@ghostfolio/ui/assistant/assistant.component';
 
@@ -28,6 +29,16 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import {
+  closeOutline,
+  logoGithub,
+  menuOutline,
+  optionsOutline,
+  personCircleOutline,
+  radioButtonOffOutline,
+  radioButtonOnOutline
+} from 'ionicons/icons';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil } from 'rxjs/operators';
 
@@ -35,7 +46,8 @@ import { catchError, takeUntil } from 'rxjs/operators';
   selector: 'gf-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+  styleUrls: ['./header.component.scss'],
+  standalone: false
 })
 export class HeaderComponent implements OnChanges {
   @HostListener('window:keydown', ['$event'])
@@ -58,6 +70,7 @@ export class HeaderComponent implements OnChanges {
   @Input() deviceType: string;
   @Input() hasPermissionToChangeDateRange: boolean;
   @Input() hasPermissionToChangeFilters: boolean;
+  @Input() hasPromotion: boolean;
   @Input() hasTabs: boolean;
   @Input() info: InfoItem;
   @Input() pageTitle: string;
@@ -69,6 +82,7 @@ export class HeaderComponent implements OnChanges {
   @ViewChild('assistantTrigger') assistentMenuTriggerElement: MatMenuTrigger;
 
   public hasFilters: boolean;
+  public hasImpersonationId: boolean;
   public hasPermissionForSocialLogin: boolean;
   public hasPermissionForSubscription: boolean;
   public hasPermissionToAccessAdminControl: boolean;
@@ -76,18 +90,23 @@ export class HeaderComponent implements OnChanges {
   public hasPermissionToAccessFearAndGreedIndex: boolean;
   public hasPermissionToCreateUser: boolean;
   public impersonationId: string;
+  public internalRoutes = internalRoutes;
   public isMenuOpen: boolean;
-  public routeAbout = $localize`:snake-case:about`;
-  public routeFeatures = $localize`:snake-case:features`;
-  public routeMarkets = $localize`:snake-case:markets`;
-  public routePricing = $localize`:snake-case:pricing`;
-  public routeResources = $localize`:snake-case:resources`;
-  public routerLinkAbout = ['/' + $localize`:snake-case:about`];
-  public routerLinkFeatures = ['/' + $localize`:snake-case:features`];
-  public routerLinkMarkets = ['/' + $localize`:snake-case:markets`];
-  public routerLinkPricing = ['/' + $localize`:snake-case:pricing`];
-  public routerLinkRegister = ['/' + $localize`:snake-case:register`];
-  public routerLinkResources = ['/' + $localize`:snake-case:resources`];
+  public routeAbout = publicRoutes.about.path;
+  public routeFeatures = publicRoutes.features.path;
+  public routeMarkets = publicRoutes.markets.path;
+  public routePricing = publicRoutes.pricing.path;
+  public routeResources = publicRoutes.resources.path;
+  public routerLinkAbout = publicRoutes.about.routerLink;
+  public routerLinkAccount = internalRoutes.account.routerLink;
+  public routerLinkAccounts = internalRoutes.accounts.routerLink;
+  public routerLinkAdminControl = internalRoutes.adminControl.routerLink;
+  public routerLinkFeatures = publicRoutes.features.routerLink;
+  public routerLinkMarkets = publicRoutes.markets.routerLink;
+  public routerLinkPortfolio = internalRoutes.portfolio.routerLink;
+  public routerLinkPricing = publicRoutes.pricing.routerLink;
+  public routerLinkRegister = publicRoutes.register.routerLink;
+  public routerLinkResources = publicRoutes.resources.routerLink;
 
   private unsubscribeSubject = new Subject<void>();
 
@@ -106,8 +125,19 @@ export class HeaderComponent implements OnChanges {
       .onChangeHasImpersonation()
       .pipe(takeUntil(this.unsubscribeSubject))
       .subscribe((impersonationId) => {
+        this.hasImpersonationId = !!impersonationId;
         this.impersonationId = impersonationId;
       });
+
+    addIcons({
+      closeOutline,
+      logoGithub,
+      menuOutline,
+      optionsOutline,
+      personCircleOutline,
+      radioButtonOffOutline,
+      radioButtonOnOutline
+    });
   }
 
   public ngOnChanges() {
@@ -174,17 +204,17 @@ export class HeaderComponent implements OnChanges {
     const userSetting: UpdateUserSettingDto = {};
 
     for (const filter of filters) {
-      let filtersType: string;
-
       if (filter.type === 'ACCOUNT') {
-        filtersType = 'accounts';
+        userSetting['filters.accounts'] = filter.id ? [filter.id] : null;
       } else if (filter.type === 'ASSET_CLASS') {
-        filtersType = 'assetClasses';
+        userSetting['filters.assetClasses'] = filter.id ? [filter.id] : null;
+      } else if (filter.type === 'DATA_SOURCE') {
+        userSetting['filters.dataSource'] = filter.id ? filter.id : null;
+      } else if (filter.type === 'SYMBOL') {
+        userSetting['filters.symbol'] = filter.id ? filter.id : null;
       } else if (filter.type === 'TAG') {
-        filtersType = 'tags';
+        userSetting['filters.tags'] = filter.id ? [filter.id] : null;
       }
-
-      userSetting[`filters.${filtersType}`] = filter.id ? [filter.id] : null;
     }
 
     this.dataService
@@ -261,7 +291,18 @@ export class HeaderComponent implements OnChanges {
       this.settingsStorageService.getSetting(KEY_STAY_SIGNED_IN) === 'true'
     );
 
-    this.router.navigate(['/']);
+    this.userService
+      .get()
+      .pipe(takeUntil(this.unsubscribeSubject))
+      .subscribe((user) => {
+        const userLanguage = user?.settings?.language;
+
+        if (userLanguage && document.documentElement.lang !== userLanguage) {
+          window.location.href = `../${userLanguage}`;
+        } else {
+          this.router.navigate(['/']);
+        }
+      });
   }
 
   public ngOnDestroy() {

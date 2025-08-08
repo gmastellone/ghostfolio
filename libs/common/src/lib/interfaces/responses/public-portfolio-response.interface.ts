@@ -1,4 +1,5 @@
-import { PortfolioPosition } from '../portfolio-position.interface';
+import { PortfolioDetails, PortfolioPosition } from '..';
+import { Market } from '../../types';
 
 export interface PublicPortfolioResponse extends PublicPortfolioResponseV1 {
   alias?: string;
@@ -22,9 +23,16 @@ export interface PublicPortfolioResponse extends PublicPortfolioResponseV1 {
       | 'valueInPercentage'
     >;
   };
+  markets: {
+    [key in Market]: Pick<
+      PortfolioDetails['markets'][key],
+      'id' | 'valueInPercentage'
+    >;
+  };
 }
 
 interface PublicPortfolioResponseV1 {
+  createdAt: Date;
   performance: {
     '1d': {
       relativeChange: number;

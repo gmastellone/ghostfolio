@@ -6,9 +6,7 @@ import {
   AdminMarketDataDetails,
   LineChartItem
 } from '@ghostfolio/common/interfaces';
-import { GfLineChartComponent } from '@ghostfolio/ui/line-chart';
 
-import { CommonModule } from '@angular/common';
 import {
   CUSTOM_ELEMENTS_SCHEMA,
   ChangeDetectionStrategy,
@@ -27,27 +25,29 @@ import { format } from 'date-fns';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import { GfLineChartComponent } from '../../line-chart/line-chart.component';
+import { GfValueComponent } from '../../value/value.component';
 import { BenchmarkDetailDialogParams } from './interfaces/interfaces';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'd-flex flex-column h-100' },
   imports: [
-    CommonModule,
     GfDialogFooterModule,
     GfDialogHeaderModule,
     GfLineChartComponent,
+    GfValueComponent,
     MatDialogModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   selector: 'gf-benchmark-detail-dialog',
-  standalone: true,
   styleUrls: ['./benchmark-detail-dialog.component.scss'],
   templateUrl: 'benchmark-detail-dialog.html'
 })
 export class GfBenchmarkDetailDialogComponent implements OnDestroy, OnInit {
   public assetProfile: AdminMarketDataDetails['assetProfile'];
   public historicalDataItems: LineChartItem[];
+  public value: number;
 
   private unsubscribeSubject = new Subject<void>();
 
@@ -68,9 +68,18 @@ export class GfBenchmarkDetailDialogComponent implements OnDestroy, OnInit {
       .subscribe(({ assetProfile, marketData }) => {
         this.assetProfile = assetProfile;
 
-        this.historicalDataItems = marketData.map(({ date, marketPrice }) => {
-          return { date: format(date, DATE_FORMAT), value: marketPrice };
-        });
+        this.historicalDataItems = marketData.map(
+          ({ date, marketPrice }, index) => {
+            if (marketData.length - 1 === index) {
+              this.value = marketPrice;
+            }
+
+            return {
+              date: format(date, DATE_FORMAT),
+              value: marketPrice
+            };
+          }
+        );
 
         this.changeDetectorRef.markForCheck();
       });

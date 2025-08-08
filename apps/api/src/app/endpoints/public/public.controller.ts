@@ -57,7 +57,7 @@ export class PublicController {
     }
 
     const [
-      { holdings },
+      { createdAt, holdings, markets },
       { performance: performance1d },
       { performance: performanceMax },
       { performance: performanceYtd }
@@ -76,8 +76,14 @@ export class PublicController {
       })
     ]);
 
+    Object.values(markets ?? {}).forEach((market) => {
+      delete market.valueInBaseCurrency;
+    });
+
     const publicPortfolioResponse: PublicPortfolioResponse = {
+      createdAt,
       hasDetails,
+      markets,
       alias: access.alias,
       holdings: {},
       performance: {
@@ -102,7 +108,7 @@ export class PublicController {
           this.exchangeRateDataService.toCurrency(
             quantity * marketPrice,
             currency,
-            this.request.user?.Settings?.settings.baseCurrency ??
+            this.request.user?.settings?.settings.baseCurrency ??
               DEFAULT_CURRENCY
           )
         );

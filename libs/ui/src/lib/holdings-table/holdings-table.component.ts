@@ -1,13 +1,9 @@
-import { GfAssetProfileIconComponent } from '@ghostfolio/client/components/asset-profile-icon/asset-profile-icon.component';
-import { GfHoldingDetailDialogComponent } from '@ghostfolio/client/components/holding-detail-dialog/holding-detail-dialog.component';
 import { GfSymbolModule } from '@ghostfolio/client/pipes/symbol/symbol.module';
 import { getLocale } from '@ghostfolio/common/helper';
 import {
   AssetProfileIdentifier,
   PortfolioPosition
 } from '@ghostfolio/common/interfaces';
-import { GfNoTransactionsInfoComponent } from '@ghostfolio/ui/no-transactions-info';
-import { GfValueComponent } from '@ghostfolio/ui/value';
 
 import { CommonModule } from '@angular/common';
 import {
@@ -18,7 +14,6 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
   Output,
   ViewChild
 } from '@angular/core';
@@ -31,13 +26,14 @@ import { AssetSubClass } from '@prisma/client';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 import { Subject, Subscription } from 'rxjs';
 
+import { GfEntityLogoComponent } from '../entity-logo/entity-logo.component';
+import { GfValueComponent } from '../value/value.component';
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    GfAssetProfileIconComponent,
-    GfHoldingDetailDialogComponent,
-    GfNoTransactionsInfoComponent,
+    GfEntityLogoComponent,
     GfSymbolModule,
     GfValueComponent,
     MatButtonModule,
@@ -49,14 +45,12 @@ import { Subject, Subscription } from 'rxjs';
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   selector: 'gf-holdings-table',
-  standalone: true,
   styleUrls: ['./holdings-table.component.scss'],
   templateUrl: './holdings-table.component.html'
 })
-export class GfHoldingsTableComponent implements OnChanges, OnDestroy, OnInit {
+export class GfHoldingsTableComponent implements OnChanges, OnDestroy {
   @Input() baseCurrency: string;
   @Input() deviceType: string;
-  @Input() hasPermissionToCreateActivity: boolean;
   @Input() hasPermissionToOpenDetails = true;
   @Input() hasPermissionToShowValues = true;
   @Input() holdings: PortfolioPosition[];
@@ -68,18 +62,13 @@ export class GfHoldingsTableComponent implements OnChanges, OnDestroy, OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
-  public dataSource: MatTableDataSource<PortfolioPosition> =
-    new MatTableDataSource();
+  public dataSource = new MatTableDataSource<PortfolioPosition>();
   public displayedColumns = [];
   public ignoreAssetSubClasses = [AssetSubClass.CASH];
   public isLoading = true;
   public routeQueryParams: Subscription;
 
   private unsubscribeSubject = new Subject<void>();
-
-  public constructor() {}
-
-  public ngOnInit() {}
 
   public ngOnChanges() {
     this.displayedColumns = ['icon', 'nameWithSymbol', 'dateOfFirstActivity'];

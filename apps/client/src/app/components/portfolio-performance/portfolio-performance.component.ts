@@ -18,13 +18,16 @@ import {
   ViewChild
 } from '@angular/core';
 import { CountUp } from 'countup.js';
+import { addIcons } from 'ionicons';
+import { timeOutline } from 'ionicons/icons';
 import { isNumber } from 'lodash';
 
 @Component({
   selector: 'gf-portfolio-performance',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portfolio-performance.component.html',
-  styleUrls: ['./portfolio-performance.component.scss']
+  styleUrls: ['./portfolio-performance.component.scss'],
+  standalone: false
 })
 export class PortfolioPerformanceComponent implements OnChanges {
   @Input() deviceType: string;
@@ -40,7 +43,9 @@ export class PortfolioPerformanceComponent implements OnChanges {
 
   @ViewChild('value') value: ElementRef;
 
-  public constructor(private notificationService: NotificationService) {}
+  public constructor(private notificationService: NotificationService) {
+    addIcons({ timeOutline });
+  }
 
   public ngOnChanges() {
     this.precision = this.precision >= 0 ? this.precision : 2;

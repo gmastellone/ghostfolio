@@ -1,6 +1,7 @@
 import { DataService } from '@ghostfolio/client/services/data.service';
 import { Statistics } from '@ghostfolio/common/interfaces';
 import { hasPermission, permissions } from '@ghostfolio/common/permissions';
+import { publicRoutes } from '@ghostfolio/common/routes/routes';
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { format } from 'date-fns';
@@ -11,7 +12,8 @@ import { Subject } from 'rxjs';
   host: { class: 'page' },
   selector: 'gf-landing-page',
   styleUrls: ['./landing-page.scss'],
-  templateUrl: './landing-page.html'
+  templateUrl: './landing-page.html',
+  standalone: false
 })
 export class LandingPageComponent implements OnDestroy, OnInit {
   public countriesOfSubscribersMap: {
@@ -23,8 +25,10 @@ export class LandingPageComponent implements OnDestroy, OnInit {
   public hasPermissionForStatistics: boolean;
   public hasPermissionForSubscription: boolean;
   public hasPermissionToCreateUser: boolean;
-  public routerLinkAbout = ['/' + $localize`:snake-case:about`];
-  public routerLinkRegister = ['/' + $localize`:snake-case:register`];
+  public routerLinkAbout = publicRoutes.about.routerLink;
+  public routerLinkDemo = publicRoutes.demo.routerLink;
+  public routerLinkOpenStartup = publicRoutes.openStartup.routerLink;
+  public routerLinkRegister = publicRoutes.register.routerLink;
   public statistics: Statistics;
   public testimonials = [
     {

@@ -7,23 +7,25 @@ import { hasPermission, permissions } from '@ghostfolio/common/permissions';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { Role } from '@prisma/client';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import { ShowAccessTokenDialogParams } from './show-access-token-dialog/interfaces/interfaces';
 import { ShowAccessTokenDialog } from './show-access-token-dialog/show-access-token-dialog.component';
 
 @Component({
   host: { class: 'page' },
   selector: 'gf-register-page',
   styleUrls: ['./register-page.scss'],
-  templateUrl: './register-page.html'
+  templateUrl: './register-page.html',
+  standalone: false
 })
 export class RegisterPageComponent implements OnDestroy, OnInit {
   public demoAuthToken: string;
   public deviceType: string;
   public hasPermissionForSocialLogin: boolean;
+  public hasPermissionForSubscription: boolean;
   public hasPermissionToCreateUser: boolean;
   public historicalDataItems: LineChartItem[];
   public info: InfoItem;
@@ -52,49 +54,42 @@ export class RegisterPageComponent implements OnDestroy, OnInit {
       globalPermissions,
       permissions.enableSocialLogin
     );
+    this.hasPermissionForSubscription = hasPermission(
+      globalPermissions,
+      permissions.enableSubscription
+    );
     this.hasPermissionToCreateUser = hasPermission(
       globalPermissions,
       permissions.createUserAccount
     );
   }
 
-  public async createAccount() {
-    this.dataService
-      .postUser()
-      .pipe(takeUntil(this.unsubscribeSubject))
-      .subscribe(({ accessToken, authToken, role }) => {
-        this.openShowAccessTokenDialog(accessToken, authToken, role);
-      });
-  }
-
   public async onLoginWithInternetIdentity() {
     try {
       const { authToken } = await this.internetIdentityService.login();
+
       this.tokenStorageService.saveToken(authToken);
-      this.router.navigate(['/']);
+
+      await this.router.navigate(['/']);
     } catch {}
   }
 
-  public openShowAccessTokenDialog(
-    accessToken: string,
-    authToken: string,
-    role: Role
-  ) {
+  public openShowAccessTokenDialog() {
     const dialogRef = this.dialog.open(ShowAccessTokenDialog, {
       data: {
-        accessToken,
-        authToken,
-        role
-      },
+        deviceType: this.deviceType,
+        needsToAcceptTermsOfService: this.hasPermissionForSubscription
+      } as ShowAccessTokenDialogParams,
       disableClose: true,
-      width: '30rem'
+      height: this.deviceType === 'mobile' ? '98vh' : undefined,
+      width: this.deviceType === 'mobile' ? '100vw' : '30rem'
     });
 
     dialogRef
       .afterClosed()
       .pipe(takeUntil(this.unsubscribeSubject))
-      .subscribe((data) => {
-        if (data?.authToken) {
+      .subscribe((authToken) => {
+        if (authToken) {
           this.tokenStorageService.saveToken(authToken, true);
 
           this.router.navigate(['/']);

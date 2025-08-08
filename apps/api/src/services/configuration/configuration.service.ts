@@ -1,10 +1,13 @@
+import { environment } from '@ghostfolio/api/environments/environment';
 import { Environment } from '@ghostfolio/api/services/interfaces/environment.interface';
 import {
   CACHE_TTL_NO_CACHE,
-  DEFAULT_PROCESSOR_CONCURRENCY_GATHER_ASSET_PROFILE,
-  DEFAULT_PROCESSOR_CONCURRENCY_GATHER_HISTORICAL_MARKET_DATA,
-  DEFAULT_PROCESSOR_CONCURRENCY_PORTFOLIO_SNAPSHOT,
-  DEFAULT_ROOT_URL
+  DEFAULT_HOST,
+  DEFAULT_PORT,
+  DEFAULT_PROCESSOR_GATHER_ASSET_PROFILE_CONCURRENCY,
+  DEFAULT_PROCESSOR_GATHER_HISTORICAL_MARKET_DATA_CONCURRENCY,
+  DEFAULT_PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_CONCURRENCY,
+  DEFAULT_PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_TIMEOUT
 } from '@ghostfolio/common/config';
 
 import { Injectable } from '@nestjs/common';
@@ -34,6 +37,12 @@ export class ConfigurationService {
       DATA_SOURCES: json({
         default: [DataSource.COINGECKO, DataSource.MANUAL, DataSource.YAHOO]
       }),
+      DATA_SOURCES_GHOSTFOLIO_DATA_PROVIDER: json({
+        default: []
+      }),
+      DATA_SOURCES_LEGACY: json({
+        default: []
+      }),
       ENABLE_FEATURE_FEAR_AND_GREED_INDEX: bool({ default: false }),
       ENABLE_FEATURE_READ_ONLY_MODE: bool({ default: false }),
       ENABLE_FEATURE_SOCIAL_LOGIN: bool({ default: false }),
@@ -45,26 +54,31 @@ export class ConfigurationService {
       GOOGLE_SHEETS_ACCOUNT: str({ default: '' }),
       GOOGLE_SHEETS_ID: str({ default: '' }),
       GOOGLE_SHEETS_PRIVATE_KEY: str({ default: '' }),
-      HOST: host({ default: '0.0.0.0' }),
+      HOST: host({ default: DEFAULT_HOST }),
       JWT_SECRET_KEY: str({}),
       MAX_ACTIVITIES_TO_IMPORT: num({ default: Number.MAX_SAFE_INTEGER }),
       MAX_CHART_ITEMS: num({ default: 365 }),
-      PORT: port({ default: 3333 }),
-      PROCESSOR_CONCURRENCY_GATHER_ASSET_PROFILE: num({
-        default: DEFAULT_PROCESSOR_CONCURRENCY_GATHER_ASSET_PROFILE
+      PORT: port({ default: DEFAULT_PORT }),
+      PROCESSOR_GATHER_ASSET_PROFILE_CONCURRENCY: num({
+        default: DEFAULT_PROCESSOR_GATHER_ASSET_PROFILE_CONCURRENCY
       }),
-      PROCESSOR_CONCURRENCY_GATHER_HISTORICAL_MARKET_DATA: num({
-        default: DEFAULT_PROCESSOR_CONCURRENCY_GATHER_HISTORICAL_MARKET_DATA
+      PROCESSOR_GATHER_HISTORICAL_MARKET_DATA_CONCURRENCY: num({
+        default: DEFAULT_PROCESSOR_GATHER_HISTORICAL_MARKET_DATA_CONCURRENCY
       }),
-      PROCESSOR_CONCURRENCY_PORTFOLIO_SNAPSHOT: num({
-        default: DEFAULT_PROCESSOR_CONCURRENCY_PORTFOLIO_SNAPSHOT
+      PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_CONCURRENCY: num({
+        default: DEFAULT_PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_CONCURRENCY
+      }),
+      PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_TIMEOUT: num({
+        default: DEFAULT_PROCESSOR_PORTFOLIO_SNAPSHOT_COMPUTATION_TIMEOUT
       }),
       REDIS_DB: num({ default: 0 }),
       REDIS_HOST: str({ default: 'localhost' }),
       REDIS_PASSWORD: str({ default: '' }),
       REDIS_PORT: port({ default: 6379 }),
-      REQUEST_TIMEOUT: num({ default: 2000 }),
-      ROOT_URL: url({ default: DEFAULT_ROOT_URL }),
+      REQUEST_TIMEOUT: num({ default: ms('3 seconds') }),
+      ROOT_URL: url({
+        default: environment.rootUrl
+      }),
       STRIPE_PUBLIC_KEY: str({ default: '' }),
       STRIPE_SECRET_KEY: str({ default: '' }),
       TWITTER_ACCESS_TOKEN: str({ default: 'dummyAccessToken' }),

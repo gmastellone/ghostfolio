@@ -6,8 +6,7 @@ import {
   Component,
   Input,
   OnChanges,
-  OnDestroy,
-  OnInit
+  OnDestroy
 } from '@angular/core';
 import svgMap from 'svgmap';
 
@@ -15,9 +14,10 @@ import svgMap from 'svgmap';
   selector: 'gf-world-map-chart',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './world-map-chart.component.html',
-  styleUrls: ['./world-map-chart.component.scss']
+  styleUrls: ['./world-map-chart.component.scss'],
+  standalone: false
 })
-export class WorldMapChartComponent implements OnChanges, OnDestroy, OnInit {
+export class WorldMapChartComponent implements OnChanges, OnDestroy {
   @Input() countries: { [code: string]: { name?: string; value: number } };
   @Input() format: string;
   @Input() isInPercent = false;
@@ -27,8 +27,6 @@ export class WorldMapChartComponent implements OnChanges, OnDestroy, OnInit {
   public svgMapElement;
 
   public constructor(private changeDetectorRef: ChangeDetectorRef) {}
-
-  public ngOnInit() {}
 
   public ngOnChanges() {
     // Create a copy before manipulating countries object

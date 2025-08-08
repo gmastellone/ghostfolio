@@ -9,8 +9,6 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class RulesService {
-  public constructor() {}
-
   public async evaluate<T extends RuleSettings>(
     aRules: Rule<T>[],
     aUserSettings: UserSettings
@@ -24,16 +22,15 @@ export class RulesService {
         return {
           evaluation,
           value,
+          categoryName: rule.getCategoryName(),
+          configuration: rule.getConfiguration(),
           isActive: true,
           key: rule.getKey(),
-          name: rule.getName(),
-          settings: <PortfolioReportRule['settings']>{
-            thresholdMax: settings['thresholdMax'],
-            thresholdMin: settings['thresholdMin']
-          }
+          name: rule.getName()
         };
       } else {
         return {
+          categoryName: rule.getCategoryName(),
           isActive: false,
           key: rule.getKey(),
           name: rule.getName()

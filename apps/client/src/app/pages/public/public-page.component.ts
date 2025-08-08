@@ -20,7 +20,8 @@ import { catchError, takeUntil } from 'rxjs/operators';
   host: { class: 'page' },
   selector: 'gf-public-page',
   styleUrls: ['./public-page.scss'],
-  templateUrl: './public-page.html'
+  templateUrl: './public-page.html',
+  standalone: false
 })
 export class PublicPageComponent implements OnInit {
   public continents: {
@@ -29,10 +30,11 @@ export class PublicPageComponent implements OnInit {
   public countries: {
     [code: string]: { name: string; value: number };
   };
+  public defaultAlias = $localize`someone`;
   public deviceType: string;
   public holdings: PublicPortfolioResponse['holdings'][string][];
   public markets: {
-    [key in Market]: { name: string; value: number };
+    [key in Market]: { id: Market; valueInPercentage: number };
   };
   public positions: {
     [symbol: string]: Pick<PortfolioPosition, 'currency' | 'name'> & {
@@ -102,24 +104,7 @@ export class PublicPageComponent implements OnInit {
       }
     };
     this.holdings = [];
-    this.markets = {
-      [UNKNOWN_KEY]: {
-        name: UNKNOWN_KEY,
-        value: 0
-      },
-      developedMarkets: {
-        name: 'developedMarkets',
-        value: 0
-      },
-      emergingMarkets: {
-        name: 'emergingMarkets',
-        value: 0
-      },
-      otherMarkets: {
-        name: 'otherMarkets',
-        value: 0
-      }
-    };
+    this.markets = this.publicPortfolioDetails.markets;
     this.positions = {};
     this.sectors = {
       [UNKNOWN_KEY]: {
@@ -150,13 +135,6 @@ export class PublicPageComponent implements OnInit {
         // Prepare analysis data by continents, countries, holdings and sectors except for liquidity
 
         if (position.countries.length > 0) {
-          this.markets.developedMarkets.value +=
-            position.markets.developedMarkets * position.valueInBaseCurrency;
-          this.markets.emergingMarkets.value +=
-            position.markets.emergingMarkets * position.valueInBaseCurrency;
-          this.markets.otherMarkets.value +=
-            position.markets.otherMarkets * position.valueInBaseCurrency;
-
           for (const country of position.countries) {
             const { code, continent, name, weight } = country;
 
@@ -192,9 +170,6 @@ export class PublicPageComponent implements OnInit {
 
           this.countries[UNKNOWN_KEY].value +=
             this.publicPortfolioDetails.holdings[symbol].valueInBaseCurrency;
-
-          this.markets[UNKNOWN_KEY].value +=
-            this.publicPortfolioDetails.holdings[symbol].valueInBaseCurrency;
         }
 
         if (position.sectors.length > 0) {
@@ -227,21 +202,6 @@ export class PublicPageComponent implements OnInit {
           : position.valueInPercentage
       };
     }
-
-    const marketsTotal =
-      this.markets.developedMarkets.value +
-      this.markets.emergingMarkets.value +
-      this.markets.otherMarkets.value +
-      this.markets[UNKNOWN_KEY].value;
-
-    this.markets.developedMarkets.value =
-      this.markets.developedMarkets.value / marketsTotal;
-    this.markets.emergingMarkets.value =
-      this.markets.emergingMarkets.value / marketsTotal;
-    this.markets.otherMarkets.value =
-      this.markets.otherMarkets.value / marketsTotal;
-    this.markets[UNKNOWN_KEY].value =
-      this.markets[UNKNOWN_KEY].value / marketsTotal;
   }
 
   public ngOnDestroy() {
